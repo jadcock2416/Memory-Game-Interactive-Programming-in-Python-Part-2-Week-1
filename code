@@ -1,0 +1,97 @@
+# implementation of card game - Memory
+
+import simplegui
+import random
+
+deck_1 = []
+deck_2 = []
+game_deck = []
+CARD_SIZE = [50, 100]
+CARD_FONT = 24
+CARD_COLOR = "White"
+CARD_SPACE = 3
+exposed = [False, False, False, False, False, 
+           False, False, False, False, False, 
+           False, False, False, False, False, False]
+state = 0
+card1 = []
+card2 = []
+cardclicked1 = []
+cardclicked2 = []
+turns = 0
+
+# helper function to initialize globals
+def new_game():
+    global deck_1, deck_2, game_deck, turns, state
+    turns = 0
+    state = 0
+    label.set_text("Turns = " + str(turns))
+    for i in range(len(exposed)):
+        exposed[i] = False
+    deck_1 = range(8)
+    deck_2 = range(8)
+    game_deck = (deck_1 + deck_2)
+    random.shuffle(game_deck)
+    print game_deck  
+     
+# define event handlers
+def mouseclick(pos):
+    # add game state logic here
+    global state, card1, card2, card_clicked1, card_clicked2, turns
+    
+    card_clicked = pos[0] // 50
+    card_clicked_value = game_deck[card_clicked]
+                
+    if state == 0:
+        exposed[card_clicked] = True
+        card1 = game_deck[card_clicked] 
+        card_clicked1 = card_clicked
+        state = 1
+        print card1
+             
+    elif state == 1:
+        exposed[card_clicked] = True
+        card2 = game_deck[card_clicked]
+        card_clicked2 = card_clicked
+        state = 2
+        print card2
+        turns += 1
+        label.set_text("Turns = " + str(turns)) 
+             
+    elif state == 2:
+        if card1 == card2:
+            exposed[card_clicked1] = True
+            exposed[card_clicked2] = True
+            state = 1
+        else:
+            exposed[card_clicked1] = False
+            exposed[card_clicked2] = False
+            state = 1
+        exposed[card_clicked] = True
+        card1 = game_deck[card_clicked]
+        card_clicked1 = card_clicked
+                         
+# cards are logically 50x100 pixels in size    
+def draw(canvas):
+    global game_deck
+    #for i in game_deck:<----WHY DOESN'T THIS CODE WORK
+    for i in range(len(game_deck)):
+        for i in range(len(exposed)):
+            if exposed[i]:
+                canvas.draw_text(str(game_deck[i]), (i * CARD_SIZE[0] + CARD_SIZE[0] / 2 - 5, CARD_SIZE[1] / 2 + 7), 
+                                 CARD_FONT, CARD_COLOR)
+            else:
+                canvas.draw_line((i * CARD_SIZE[0] + CARD_SIZE[0] / 2, CARD_SIZE[1]), (i * CARD_SIZE[0] + CARD_SIZE[0] / 2, 0), CARD_SIZE[0] - CARD_SPACE, "Green")
+
+# create frame and add a button and labels
+frame = simplegui.create_frame("Memory", 800, 100)
+frame.add_button("Reset", new_game)
+label = frame.add_label("Turns = 0")
+
+# register event handlers
+frame.set_mouseclick_handler(mouseclick)
+frame.set_draw_handler(draw)
+
+# get things rolling
+new_game()
+frame.start()
